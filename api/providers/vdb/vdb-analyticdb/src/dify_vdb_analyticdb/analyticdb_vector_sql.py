@@ -215,7 +215,7 @@ class AnalyticdbVectorBySql:
         where_clause = "WHERE 1=1"
         if document_ids_filter:
             document_ids = ", ".join(f"'{id}'" for id in document_ids_filter)
-            where_clause += f"AND metadata_->>'document_id' IN ({document_ids})"
+            where_clause += f" AND metadata_->>'document_id' IN ({document_ids})"
         score_threshold = float(kwargs.get("score_threshold") or 0.0)
         with self._get_cursor() as cur:
             query_vector_str = json.dumps(query_vector)

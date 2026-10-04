@@ -268,6 +268,37 @@ def test_similarity_search_with_score_by_vector(relyt_module):
     assert similarities[0][0].page_content == "doc-a"
 
 
+@pytest.mark.parametrize(
+    ("metadata_filter", "expected_condition"),
+    [
+        (None, ""),
+        ({}, ""),
+        ({"document_id": ["doc-1"]}, "WHERE metadata->>'document_id' = 'doc-1'"),
+        ({"document_id": ["doc-1", "doc-2"]}, "WHERE metadata->>'document_id' in ('doc-1', 'doc-2')"),
+        (
+            {"document_id": ["doc-1", "doc-2"], "group_id": ["group-1"]},
+            "WHERE metadata->>'document_id' in ('doc-1', 'doc-2') AND metadata->>'group_id' = 'group-1'",
+        ),
+    ],
+)
+def test_similarity_search_metadata_filter_sql(relyt_module, metadata_filter, expected_condition):
+    vector = relyt_module.RelytVector.__new__(relyt_module.RelytVector)
+    vector._collection_name = "collection_1"
+    vector.client = MagicMock()
+    conn = vector.client.connect.return_value.__enter__.return_value
+    conn.execute.return_value.fetchall.return_value = []
+
+    assert vector.similarity_search_with_score_by_vector([0.1, 0.2], k=3, filter=metadata_filter) == []
+
+    statement, params = conn.execute.call_args.args
+    sql = " ".join(str(statement).split())
+    if expected_condition:
+        assert f"{expected_condition} ORDER BY" in sql
+    else:
+        assert "WHERE" not in sql
+    assert params == {"embedding": "[0.1, 0.2]", "k": 3}
+
+
 # 7. search_by_vector filters by score and ids
 def test_search_by_vector_filters_by_score_and_ids(relyt_module):
     vector = relyt_module.RelytVector.__new__(relyt_module.RelytVector)

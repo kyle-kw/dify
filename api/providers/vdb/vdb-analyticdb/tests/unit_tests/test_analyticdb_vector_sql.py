@@ -227,6 +227,33 @@ def test_search_by_vector_returns_documents_above_threshold():
     assert docs[0].metadata["score"] == 0.8
 
 
+@pytest.mark.parametrize(
+    ("document_ids", "expected_condition"),
+    [
+        (None, "WHERE 1=1"),
+        ([], "WHERE 1=1"),
+        (["doc-1"], "WHERE 1=1 AND metadata_->>'document_id' IN ('doc-1')"),
+        (["doc-1", "doc-2"], "WHERE 1=1 AND metadata_->>'document_id' IN ('doc-1', 'doc-2')"),
+    ],
+)
+def test_search_by_vector_metadata_filter_sql(document_ids, expected_condition):
+    vector = AnalyticdbVectorBySql.__new__(AnalyticdbVectorBySql)
+    vector.table_name = "dify.collection"
+    cursor = MagicMock()
+
+    @contextmanager
+    def _cursor_context():
+        yield cursor
+
+    vector._get_cursor = _cursor_context
+
+    assert vector.search_by_vector([0.1, 0.2], top_k=3, document_ids_filter=document_ids) == []
+
+    sql, params = cursor.execute.call_args.args
+    assert f"FROM dify.collection {expected_condition} ORDER BY score LIMIT 3" in sql
+    assert params == ("{0.1, 0.2}",)
+
+
 @pytest.mark.parametrize("invalid_top_k", [0, "x", -1])
 def test_search_by_full_text_validates_top_k(invalid_top_k):
     vector = AnalyticdbVectorBySql.__new__(AnalyticdbVectorBySql)
