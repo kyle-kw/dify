@@ -98,7 +98,8 @@ const HITLInputVariableBlockComponent = ({
         UPDATE_WORKFLOW_NODES_MAP,
         (payload: UpdateWorkflowNodesMapPayload) => {
           setLocalWorkflowNodesMap(payload.workflowNodesMap)
-          return true
+          // Broadcast metadata updates to every variable block in the prompt.
+          return false
         },
         COMMAND_PRIORITY_EDITOR,
       ),

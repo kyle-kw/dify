@@ -91,7 +91,8 @@ const WorkflowVariableBlockComponent = ({
         (payload: UpdateWorkflowNodesMapPayload) => {
           setLocalWorkflowNodesMap(payload.workflowNodesMap)
           setLocalAvailableVariables(payload.availableVariables)
-          return true
+          // Broadcast metadata updates to every variable block in the prompt.
+          return false
         },
         COMMAND_PRIORITY_EDITOR,
       ),
