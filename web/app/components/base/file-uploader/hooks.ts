@@ -133,13 +133,15 @@ export const useFile = (fileConfig: FileUpload, noNeedToCheckEnable = true) => {
   const handleAddFile = useCallback(
     (newFile: FileEntity) => {
       const { files, setFiles } = fileStore.getState()
+      if (fileConfig.number_limits && files.length >= fileConfig.number_limits) return false
 
       const newFiles = produce(files, (draft) => {
         draft.push(newFile)
       })
       setFiles(newFiles)
+      return true
     },
-    [fileStore],
+    [fileStore, fileConfig.number_limits],
   )
 
   const handleUpdateFile = useCallback(
@@ -237,7 +239,7 @@ export const useFile = (fileConfig: FileUpload, noNeedToCheckEnable = true) => {
         url,
         isRemote: true,
       }
-      handleAddFile(uploadingFile)
+      if (!handleAddFile(uploadingFile)) return
       startProgressTimer(uploadingFile.id)
 
       let remoteUpload
@@ -357,7 +359,7 @@ export const useFile = (fileConfig: FileUpload, noNeedToCheckEnable = true) => {
             originalFile: file,
             base64Url: isImage ? (reader.result as string) : '',
           }
-          handleAddFile(uploadingFile)
+          if (!handleAddFile(uploadingFile)) return
           const uploadParams: Parameters<typeof fileUpload>[0] = {
             file: uploadingFile.originalFile,
             onProgressCallback: (progress) => {
