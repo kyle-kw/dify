@@ -540,9 +540,8 @@ describe('WorkflowVariableBlockComponent', () => {
     const updateHandler = mockRegisterCommand.mock.calls[0]![1] as (
       payload: UpdateWorkflowNodesMapPayload,
     ) => boolean
-    let result = false
     act(() => {
-      result = updateHandler({
+      updateHandler({
         workflowNodesMap: {
           'node-1': {
             title: 'Updated',
@@ -556,7 +555,7 @@ describe('WorkflowVariableBlockComponent', () => {
       })
     })
 
-    expect(result).toBe(true)
+    expect(mockVarLabel).toHaveBeenLastCalledWith(expect.objectContaining({ nodeTitle: 'Updated' }))
   })
 
   it('should mark non-special variable invalid when source key is missing in availableVariables', () => {

@@ -140,18 +140,16 @@ describe('HITLInputVariableBlockComponent', () => {
       const editor = getEditor()
       expect(editor).not.toBeNull()
 
-      let handled = false
       act(() => {
         editor!.update(() => {
           $getRoot().selectEnd()
         })
-        handled = editor!.dispatchCommand(UPDATE_WORKFLOW_NODES_MAP, {
+        editor!.dispatchCommand(UPDATE_WORKFLOW_NODES_MAP, {
           workflowNodesMap: createWorkflowNodesMap(),
           availableVariables: [],
         })
       })
 
-      expect(handled).toBe(true)
       await waitFor(() => {
         expect(screen.getByText('Node One')).toBeInTheDocument()
       })
